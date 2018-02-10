@@ -1,0 +1,94 @@
+#!/bin/bash
+
+TMP_DIR="/tmp/i3-persist"
+
+# Returns the id of the currently focused container.
+function get_focused_container_id () {
+  i3-msg -t get_tree | jq 'recurse(.nodes[]) | select(.focused == true) | .id'
+}
+
+# Returns the ids of all containers. Form: newline-separated
+function get_all_container_ids () {
+  i3-msg -t get_tree | jq 'recurse(.nodes[]) | .id'
+}
+
+# Creates temporary directory for storing locked containers
+function create_temporary_directory () {
+  mkdir -p "$TMP_DIR"
+}
+
+function argument_or_focused_container () {
+  if [ ! -z "$1" ]
+  then
+    echo "$1"
+  else
+    get_focused_container_id
+  fi
+}
+
+# Removes lock files for 
+function remove_expired_container_locks () {
+  ALL_CONTAINERS=$(get_all_container_ids)
+  for FILE in "$TMP_DIR/"*
+  do
+    [ -e "$FILE" ] || continue
+    CONTAINER=$(sed 's/^.*\///' <<< "$FILE")
+    grep "$CONTAINER" <<< "$ALL_CONTAINERS" && rm "$FILE"
+  done
+}
+
+function lock_container () {
+  CONTAINER=$(argument_or_focused_container "$1")
+  touch "$TMP_DIR/$CONTAINER.lock"
+}
+
+function unlock_container () {
+  CONTAINER=$(argument_or_focused_container "$1")
+  rm "$TMP_DIR/$CONTAINER.lock" 2>/dev/null
+}
+
+# Main
+
+create_temporary_directory
+remove_expired_container_locks
+
+if [ -z "$1" -o "$1" = "--help" ]
+then
+  echo "Syntax: i3-persist [lock|unlock|toggle|kill] [id]"
+  exit 0
+fi
+
+if [ "$1" = "lock" ]
+then
+  lock_container "$2"
+  exit 0
+fi
+
+if [ "$1" = "unlock" ]
+then
+  unlock_container "$2"
+  exit 0
+fi
+
+if [ "$1" = "toggle" ]
+then
+  CONTAINER=$(argument_or_focused_container "$2")
+
+  if [ ! -e "$TMP_DIR/$CONTAINER.lock" ]
+  then
+    lock_container "$CONTAINER"
+  else
+    unlock_container "$CONTAINER"
+  fi
+  exit 0
+fi
+
+if [ "$1" = "kill" ]
+then
+  CONTAINER=$(argument_or_focused_container "$2")
+  [ ! -e "$TMP_DIR/$CONTAINER.lock" ] && i3-msg "[con_id=\"$CONTAINER\"]" kill
+  exit 0
+fi
+
+echo -e "i3-persist: invalid operand\nTry 'i3-persist --help' for more information."
+exit 1
