@@ -1,54 +1,8 @@
 #!/bin/bash
 
-TMP_DIR="/tmp/i3-persist"
-
-# Returns the id of the currently focused container.
-function get_focused_container_id () {
-  i3-msg -t get_tree | jq 'recurse(.nodes[]) | select(.focused == true) | .id'
-}
-
-# Returns the ids of all containers. Form: newline-separated
-function get_all_container_ids () {
-  i3-msg -t get_tree | jq 'recurse(.nodes[]) | .id'
-}
-
-# Creates temporary directory for storing locked containers
-function create_temporary_directory () {
-  mkdir -p "$TMP_DIR"
-}
-
-function argument_or_focused_container () {
-  if [ ! -z "$1" ]
-  then
-    echo "$1"
-  else
-    get_focused_container_id
-  fi
-}
-
-# Removes lock files for 
-function remove_expired_container_locks () {
-  ALL_CONTAINERS=$(get_all_container_ids)
-  for FILE in "$TMP_DIR/"*
-  do
-    [ -e "$FILE" ] || continue
-    CONTAINER=$(sed 's/^.*\///' <<< "$FILE")
-    grep "$CONTAINER" <<< "$ALL_CONTAINERS" && rm "$FILE"
-  done
-}
-
-function lock_container () {
-  CONTAINER=$(argument_or_focused_container "$1")
-  touch "$TMP_DIR/$CONTAINER.lock"
-}
-
-function unlock_container () {
-  CONTAINER=$(argument_or_focused_container "$1")
-  rm "$TMP_DIR/$CONTAINER.lock" 2>/dev/null
-}
+. "$(dirname "$(readlink -f "$0")")/../src/i3-persist-common.sh"
 
 # Main
-
 create_temporary_directory
 remove_expired_container_locks
 
@@ -58,26 +12,28 @@ then
   exit 0
 fi
 
+CONTAINER=$(argument_or_focused_container "$2")
+
 if [ "$1" = "lock" ]
 then
-  lock_container "$2"
+  lock_container "$CONTAINER"
   exit 0
 fi
 
 if [ "$1" = "unlock" ]
 then
-  unlock_container "$2"
+  unlock_container "$CONTAINER"
   exit 0
 fi
 
 if [ "$1" = "toggle" ]
 then
-  CONTAINER=$(argument_or_focused_container "$2")
-
-  if [ ! -e "$TMP_DIR/$CONTAINER.lock" ]
+  if ! is_container_locked "$CONTAINER"
   then
+    i3-nagbar -m Locking &
     lock_container "$CONTAINER"
   else
+    i3-nagbar -m Unlocking &
     unlock_container "$CONTAINER"
   fi
   exit 0
@@ -85,8 +41,7 @@ fi
 
 if [ "$1" = "kill" ]
 then
-  CONTAINER=$(argument_or_focused_container "$2")
-  [ ! -e "$TMP_DIR/$CONTAINER.lock" ] && i3-msg "[con_id=\"$CONTAINER\"]" kill
+  ! is_container_locked "$CONTAINER" && ! has_any_locked_child_containers "$CONTAINER" && i3-msg "[con_id=\"$CONTAINER\"]" kill
   exit 0
 fi
 

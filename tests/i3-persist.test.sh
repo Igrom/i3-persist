@@ -1,5 +1,5 @@
 #!/bin/bash
-MAIN="../bin/i3-persist"
+MAIN="bin/i3-persist"
 
 test_invalid_operand_returns_invalid_operand_message () {
   assertTrue "Expected an invalid operand message." "grep -i invalid <($MAIN xyzzy)"
