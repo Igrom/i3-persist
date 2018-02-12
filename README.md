@@ -25,6 +25,19 @@ Closes a container or switches its state from closable to persistent.
 Using the featured set of commands, containers can be marked so as to prevent their careless closing. A custom kill command is made available as a plug-in substitute for 'i3-msg kill'. If a container is marked as persistent, attempted closing of the container through the command will have no effect.
 
 
+INSTALLATION NOTES
+------------------
+1. Download the repository and save in a catalog.
+2. (Optional) Run tests with `./run_tests.sh`.
+3. Create a symlink to bin/i3-persist in your PATH.
+
+The tool is the most convenient when used with keybindings.
+
+Example .config/i3/config bindings:
+- bindsym $mod+Shift+q exec 'i3-persist kill'
+- bindsym $mod+Delete exec 'i3-persist toggle'
+
+
 SUBCOMMANDS
 -----------
 
