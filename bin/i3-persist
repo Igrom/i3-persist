@@ -1,6 +1,10 @@
-#!/bin/bash
+#!/bin/sh
 
-. "$(dirname "$(readlink -f "$0")")/../src/i3-persist-common.sh"
+FILE="`readlink -f "$0"`"
+echo Lol
+
+# import library
+. "`dirname $FILE`/../src/i3-persist-common.sh"
 
 # Main
 create_temporary_directory
@@ -12,7 +16,7 @@ then
   exit 0
 fi
 
-CONTAINER=$(argument_or_focused_container "$2")
+CONTAINER=`argument_or_focused_container "$2"`
 
 if [ "$1" = "lock" ]
 then
@@ -30,10 +34,8 @@ if [ "$1" = "toggle" ]
 then
   if ! is_container_locked "$CONTAINER"
   then
-    i3-nagbar -m Locking &
     lock_container "$CONTAINER"
   else
-    i3-nagbar -m Unlocking &
     unlock_container "$CONTAINER"
   fi
   exit 0

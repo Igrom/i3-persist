@@ -36,11 +36,11 @@ toggle::
 	Toggle the container between the two states.
 
 kill::
-	For closable containers, closes the container similarly to 'i3-msg kill'. For persistent containers, doesn't do anything.
+  Closes the container unless either the container or any of its descending containers are locked. Otherwise, doesn't do anything.
 
 By default, i3-persist will operate on the currently focused container. For scripting purposes, it is possible to pass a con\_id to all methods.  
 
 
-BUGS
-----
-It is currently possible to close a 
+COPYRIGHT
+---------
+Copyright © 2018 Igor Sowinski.  Licensed under the 3-clause BSD license.

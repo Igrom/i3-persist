@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -14,12 +14,12 @@ done
 
 if ! grep -q "ASSERT:" tests.log
 then
-  echo -e "${GREEN}All tests passed!$NC"
+  echo "${GREEN}All tests passed!$NC"
   exit 0
 fi
 
-echo -e "--------------------------------------------\n"
-echo -e "$RED$(grep -c "ASSERT:" tests.log) tests failed!$NC"
+echo "--------------------------------------------\n"
+echo "$RED$(grep -c "ASSERT:" tests.log) tests failed!$NC"
 echo "Failed tests:"
 grep -B1 "ASSERT:" tests.log | grep -v "ASSERT:" | sed 's/^/- /'
 
