@@ -1,7 +1,6 @@
 #!/bin/sh
 
 FILE="`readlink -f "$0"`"
-echo Lol
 
 # import library
 . "`dirname $FILE`/../src/i3-persist-common.sh"
@@ -47,5 +46,5 @@ then
   exit 0
 fi
 
-echo -e "i3-persist: invalid operand\nTry 'i3-persist --help' for more information."
+printf "i3-persist: invalid operand\nTry 'i3-persist --help' for more information.\n"
 exit 1
