@@ -2,7 +2,12 @@ TMP_DIR="/tmp/i3-persist"
 
 # Returns the id of the currently focused container
 get_focused_container_id() {
-  i3-msg -t get_tree | jq "recurse(.nodes[]) | select(.focused == true) | .id"
+  ID=$(i3-msg -t get_tree | jq "recurse(.nodes[]) | select(.focused == true) | .id")
+  if [ -z "$ID" ]
+  then
+    ID=$(i3-msg -t get_tree | jq "recurse(.nodes[])" | jq "recurse(.floating_nodes[])" | jq "recurse(.nodes[])| select(.focused == true) | .id")
+  fi
+  echo $ID
 }
 
 # Returns the ids of all child containers. Includes the parent. Form: newline-separated
